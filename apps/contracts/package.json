@@ -3,11 +3,11 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "start": "hardhat node & yarn compile && yarn deploy --network localhost",
+        "start": "hardhat node & yarn compile && yarn deploy --network hyperspace",
         "compile": "hardhat compile",
         "download:snark-artifacts": "hardhat run scripts/download-snark-artifacts.ts",
         "deploy": "hardhat run scripts/deploy.ts",
-        "deploy:events": "hardhat deploy:events",
+        "deploy:creds": "hardhat deploy:events",
         "deploy:verifier": "hardhat deploy:verifier",
         "test": "hardhat test",
         "test:report-gas": "REPORT_GAS=true hardhat test",

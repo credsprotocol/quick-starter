@@ -27,7 +27,7 @@ export default function ProofStep({ signer, contract, event, identity, onPrevCli
             return []
         }
 
-        const reviews = await contract.queryFilter(contract.filters.ReviewPosted(event.groupId))
+        const reviews = await contract.queryFilter(contract.filters.ReviewPosted(event.groupId), 100000, "latest")
 
         return reviews.map((r) => parseBytes32String(r.args![1]))
     }, [signer, contract, event])
@@ -45,7 +45,7 @@ export default function ProofStep({ signer, contract, event, identity, onPrevCli
                 onLog(`Posting your anonymous review...`)
 
                 try {
-                    const members = await contract.queryFilter(contract.filters.MemberAdded(event.groupId))
+                    const members = await contract.queryFilter(contract.filters.MemberAdded(event.groupId), 100000, "latest")
                     const group = new Group()
 
                     group.addMembers(members.map((m) => m.args![1].toString()))

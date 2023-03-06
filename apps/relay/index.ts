@@ -3,7 +3,7 @@ import { config as dotenvConfig } from "dotenv"
 import { Contract, providers, utils, Wallet } from "ethers"
 import express from "express"
 import { resolve } from "path"
-import { abi as contractAbi } from "../contracts/build/contracts/contracts/Events.sol/Events.json"
+import { abi as contractAbi } from "../contracts/build/contracts/contracts/FilecoinVritualMachineEarlyBuildersCred.sol/FilecoinVritualMachineEarlyBuildersCred.json"
 
 dotenvConfig({ path: resolve(__dirname, "../../.env") })
 
@@ -41,14 +41,16 @@ app.post("/post-review", async (req, res) => {
     const { review, nullifierHash, groupId, solidityProof } = req.body
 
     try {
-        const transaction = await contract.postReview(
+        const transaction = await contract.verifyCred(
             utils.formatBytes32String(review),
             nullifierHash,
             groupId,
             solidityProof
         )
 
-        await transaction.wait()
+        const re = await transaction.wait()
+
+            console.log(re)
 
         res.status(200).end()
     } catch (error: any) {
@@ -59,10 +61,12 @@ app.post("/post-review", async (req, res) => {
 })
 
 app.post("/add-member", async (req, res) => {
-    const { groupId, identityCommitment } = req.body
+    const { credCode, identityCommitment } = req.body
 
     try {
-        const transaction = await contract.addMember(groupId, identityCommitment)
+        console.log("Cred Code : ", utils.formatBytes32String(credCode))
+        console.log(identityCommitment)
+        const transaction = await contract.claimCred(utils.formatBytes32String(credCode), identityCommitment)
 
         await transaction.wait()
 

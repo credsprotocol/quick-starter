@@ -6,7 +6,7 @@ import { Contract, providers, Signer } from "ethers"
 import { hexlify } from "ethers/lib/utils"
 import { useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
-import Events from "../../contracts/build/contracts/contracts/Events.sol/Events.json"
+import Events from "../../contracts/build/contracts/contracts/FilecoinVritualMachineEarlyBuildersCred.sol/FilecoinVritualMachineEarlyBuildersCred.json"
 import theme from "../styles"
 import GroupStep from "./components/GroupStep"
 import IdentityStep from "./components/IdentityStep"
@@ -38,7 +38,10 @@ function App() {
 
             if (accounts[0]) {
                 setSigner(ethersProvider.getSigner())
-
+                console.log(process.env.CONTRACT_ADDRESS);
+                console.log(Events.abi);
+                console.log(ethersProvider)
+                console.log(new Contract(process.env.CONTRACT_ADDRESS!, Events.abi, ethersProvider.getSigner()))
                 setContract(new Contract(process.env.CONTRACT_ADDRESS!, Events.abi, ethersProvider.getSigner()))
             }
 

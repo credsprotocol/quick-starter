@@ -1,6 +1,7 @@
 import { Box, Button, Divider, Heading, HStack, Link, Text, useBoolean, VStack } from "@chakra-ui/react"
 import { Identity } from "@semaphore-protocol/identity"
-import { Contract, Signer } from "ethers"
+import { Contract, providers, Signer } from "ethers"
+import detectEthereumProvider from "@metamask/detect-provider"
 import { formatBytes32String, parseBytes32String } from "ethers/lib/utils"
 import { useCallback, useEffect, useState } from "react"
 import IconCheck from "../icons/IconCheck"
@@ -18,17 +19,22 @@ export type GroupStepProps = {
 }
 
 export default function GroupStep({ signer, contract, identity, onPrevClick, onSelect, onLog }: GroupStepProps) {
+
+
     const [_loading, setLoading] = useBoolean()
     const [_events, setEvents] = useState<any[]>([])
     const [_identityCommitment, setIdentityCommitment] = useState<string>()
 
     const getEvents = useCallback(async () => {
+        console.log("S", signer)
+        console.log("C", contract)
         if (!signer || !contract) {
             return []
         }
 
-        const events = await contract.queryFilter(contract.filters.EventCreated())
-        const members = await contract.queryFilter(contract.filters.MemberAdded())
+        const events = await contract.queryFilter(contract.filters.EventCreated(), 100000, "latest")
+        console.log("E", events)
+        const members = await contract.queryFilter(contract.filters.MemberAdded(), 100000, "latest")
 
         return events.map((e) => ({
             groupId: e.args![0],
@@ -39,8 +45,10 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
 
     useEffect(() => {
         ;(async () => {
+            
             const events = await getEvents()
-
+            console.log("Hello Events")
+            console.log(events)
             if (events.length > 0) {
                 setEvents(events)
 
@@ -66,6 +74,7 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                 onLog(`Creating the '${eventName}' event...`)
 
                 try {
+                    console.log("Creating Event ...")
                     const transaction = await contract.createEvent(formatBytes32String(eventName))
 
                     await transaction.wait()
@@ -87,11 +96,13 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
     const joinEvent = useCallback(
         async (event: any) => {
             if (_identityCommitment) {
-                const response = window.confirm(
-                    `There are ${event.members.length} members in this event. Are you sure you want to join?`
-                )
+                // const response = window.confirm(
+                //     `There are ${event.members.length} members in this event. Are you sure you want to join?`
+                // )
 
-                if (response) {
+                const credCode = prompt("Please Enter Cred Code : ")
+
+                if (credCode == event.eventName) {
                     setLoading.on()
                     onLog(`Joining the '${event.eventName}' event...`)
 
@@ -99,7 +110,7 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            groupId: event.groupId,
+                            credCode: credCode,
                             identityCommitment: _identityCommitment
                         })
                     })
@@ -114,6 +125,8 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                     }
 
                     setLoading.off()
+                } else {
+                    alert("Invalid Cred Code !!")
                 }
             }
         },
@@ -129,23 +142,26 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
     return (
         <>
             <Heading as="h2" size="xl">
-                Groups
+                Hello, FVM Early builder 👋
             </Heading>
 
             <Text pt="2" fontSize="md">
-                Semaphore{" "}
-                <Link href="https://semaphore.appliedzkp.org/docs/guides/groups" color="primary.500" isExternal>
-                    groups
+                We are getting close to{" "}
+                <Link href="https://fvm.filecoin.io/" color="primary.500" isExternal>
+                    FVM
                 </Link>{" "}
-                are binary incremental Merkle trees in which each leaf contains an identity commitment for a user.
-                Groups can be abstracted to represent events, polls, or organizations.
+                main net launch on March 14th and Cohort Graduation 🚀
+               
+            </Text>
+            <Text pt="2" fontSize="md">
+                Its time to claim the FVM Early Builder Cred 🎓
             </Text>
 
             <Divider pt="5" borderColor="gray.500" />
 
             <HStack pt="5" justify="space-between">
                 <Text fontWeight="bold" fontSize="lg">
-                    Groups
+                    FVM Early Builders Cred
                 </Text>
                 <Button
                     leftIcon={<IconRefreshLine />}
@@ -158,18 +174,7 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
             </HStack>
 
             <Box py="5">
-                <Button
-                    w="100%"
-                    fontWeight="bold"
-                    justifyContent="left"
-                    colorScheme="primary"
-                    px="4"
-                    onClick={createEvent}
-                    isDisabled={_loading}
-                    leftIcon={<IconAddCircleFill />}
-                >
-                    Create new group
-                </Button>
+                
             </Box>
 
             {_events.length > 0 && (
@@ -184,8 +189,8 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                             borderWidth={1}
                         >
                             <Text>
-                                <b>{event.eventName}</b> ({event.members.length}{" "}
-                                {event.members.length === 1 ? "member" : "members"})
+                                <b></b> {event.members.length}{" "}
+                                {event.members.length === 1 ? "Member" : "Members"}
                             </Text>
 
                             {event.members.includes(_identityCommitment) ? (
@@ -197,7 +202,7 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                                     fontWeight="bold"
                                     variant="link"
                                 >
-                                    Joined
+                                    Joined Cred
                                 </Button>
                             ) : (
                                 <Button
@@ -207,7 +212,7 @@ export default function GroupStep({ signer, contract, identity, onPrevClick, onS
                                     fontWeight="bold"
                                     variant="link"
                                 >
-                                    Join
+                                    Join  Cred
                                 </Button>
                             )}
                         </HStack>
